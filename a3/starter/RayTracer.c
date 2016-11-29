@@ -446,7 +446,7 @@ int main(int argc, char *argv[])
  struct image* backg = readPPMimage("./mytex/blue_sky_background.ppm");
  unsigned char *backgroundimage=(unsigned char *)backg->rgbdata;
 
- int aa_samples;
+ int antialias_sample;
  int k;
  struct colourRGB aa_color_sum;
 
@@ -468,11 +468,11 @@ int main(int argc, char *argv[])
  fprintf(stderr,"Rendering image at %d x %d\n",sx,sx);
  fprintf(stderr,"Recursion depth = %d\n",MAX_DEPTH);
  if (!antialiasing) {
-  aa_samples = 1;
+  antialias_sample = 1;
   fprintf(stderr,"Antialising is off\n");
  }
  else {
-  aa_samples = 4;
+  antialias_sample = 4;
   fprintf(stderr,"Antialising is on\n");
  }
 
@@ -572,7 +572,7 @@ int main(int argc, char *argv[])
  printmatrix(cam->W2C);
  fprintf(stderr,"\n");
 
-// fprintf(stderr,"num of samples: %d\n",aa_samples);
+// fprintf(stderr,"num of samples: %d\n",antialias_sample);
 
  fprintf(stderr,"Rendering row: ");
 
@@ -580,7 +580,7 @@ int main(int argc, char *argv[])
  * Reference: https://computing.llnl.gov/tutorials/openMP/
  * http://www.geeksforgeeks.org/multithreading-c-2/
  **/
- #pragma omp parallel for schedule(dynamic,32) shared(aa_samples, rgbIm, object_list, light_list) private(j)
+ #pragma omp parallel for schedule(dynamic,32) shared(antialias_sample, rgbIm, object_list, light_list) private(j)
  for (j=0;j<sx;j++)		// For each of the pixels in the image
  {
   fprintf(stderr,"%d/%d, ",j,sx);
@@ -605,13 +605,12 @@ int main(int argc, char *argv[])
     //         raytracing!
     ///////////////////////////////////////////////////////////////////
 
-
     aa_color_sum.R = 0;
     aa_color_sum.G = 0;
     aa_color_sum.B = 0;
 
     #pragma omp parallel for private (k, pc, d, ray, col)
-    for (k=0; k< aa_samples; k++) {
+    for (k=0; k< antialias_sample; k++) {
       // the pixel on view plane:
       pc.px = cam->wl + (i + antialiasing * (drand48() - 0.5))*du;
       pc.py = cam->wt + (j + antialiasing * (drand48() - 0.5))*dv;
@@ -650,9 +649,9 @@ int main(int argc, char *argv[])
       free(ray);
     }
 
-    *(rgbIm + offset + 0) = clip(aa_color_sum.R / aa_samples) * 255;
-    *(rgbIm + offset + 1) = clip(aa_color_sum.G / aa_samples) * 255;
-    *(rgbIm + offset + 2) = clip(aa_color_sum.B / aa_samples) * 255;
+    *(rgbIm + offset + 0) = clip(aa_color_sum.R / antialias_sample) * 255;
+    *(rgbIm + offset + 1) = clip(aa_color_sum.G / antialias_sample) * 255;
+    *(rgbIm + offset + 2) = clip(aa_color_sum.B / antialias_sample) * 255;
 
     // free(ray);
 
