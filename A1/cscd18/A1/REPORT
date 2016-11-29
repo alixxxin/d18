@@ -1,0 +1,94 @@
+CSC D18 - Assignment 1 Report File
+
+In this file you must:
+
+__________________________________________________________________
+1) Describe *briefly* and *concisely* what parts of the assignment
+   you found easier, harder, and/or tricky to get right
+
+Easier:
+    Rule1-Rule3 we're provided with formula and a website for reference. It's pretty clear what to do.
+Harder:
+    I added trails for all bats(Boids in my case), and that part I find the most difficult in the assignment.
+    At first, I didn't pop the matrix before drawing the trail, so my homogeneous coordinates origin is at the center of each bat(Boids) where I was drawing each Boid. Therefore, when I just draw the trail using the past_positions I stored which are with respect to the cube's homogeneous coordinates, the trails aren't where they are supposed to be.
+    It took me a while to figure out I need to pop the matrix then push a new identity matrix.
+
+
+__________________________________________________________________
+2) Answer any //QUESTION: items noted in the code
+
+
+ ///////////////////////////////////////////
+ // QUESTION:
+ //  Is this the optimal way to implement this
+ // rule? can you see any problems or ways
+ // to improve this bit?
+ ///////////////////////////////////////////
+No. We looped through all Boids every time we update the velocity with a rule. Maybe we can just use one loop and update all rules together.
+
+ ///////////////////////////////////////////
+ // QUESTION: Why add inertia at the end and
+ //  not at the beginning?
+ ///////////////////////////////////////////
+We added inertia because we want a portion of the original speed unchanged. Let's say if we add inertia in the beginning, when we update the velocity with rule1-rule3, the velocity is changed again. And that includes the small portion of original speed we added. So, in the end, we didn't add a portion of the original speed, but instead, we added original speed under rules again. That doesn't serve the purpose of adding tendency for Boids to remain its original velocity.
+Only at the end, we have velocity updated with all rules, can we add the inertia to create the effect of having Boids remain a portion of its original velocity
+
+
+__________________________________________________________________
+3) Describe any //CRUNCHY: extensions you implemented
+
+* Added a ghost in the top upper corner, all bats are scared of ghost so when they hit the ghost, they fly in opposite direction
+
+* Animated the ghost and bats, the ghost in the top corner is slowly turning and shifting its "tail" every second. All bats are flapping their wings and their eyes are alternating color between red and yellow.
+
+* A witch that is represented in a red outline is a predator, all bats fly away from the witch.
+
+* A cat which is represented in green outline is the leader of all bats, because of its natural instinct to fly away from the witch, all bats decides to hover around the cat.
+
+* Add trails for each Boids(bat/witch/cat) to show the last 5 positions as a trajectory
+
+* Add a 'shapeness' component. All Boids including bats, cat and witch have a tendency to hover near one of the points of a 3D model imported from the file.
+
+__________________________________________________________________
+
+4) Briefly comment on the following:
+
+a) What is the time complexity of the boid update (in big-Oh notation),
+   justify.
+
+   Let n denote the number of boids,
+   For one boid, the update is O(n)
+   To update all boids in one frame, it's O(n^2)
+
+b) What could you do to make the update more efficient?
+
+    I could have store all distance from current Boid to other Boids in an array, and use that array for rule1 and rule2.
+        For rule1, I can calculate the center of mass just by adding all distances together and divide by (number of boids -1). Since essentially calculating the center of mass then subtracting current boid location is the same as transforming the coordinate to current Boid, calculating the vector to the center of mass.
+        For rule 2, I don't have to calculate the distance between current Boid and other Boids, since it's stored in an array.
+
+c) What is the greatest bottleneck of the program:
+
+    Is it the boid update code?
+    Or is it the boid display code?
+
+    Why is that? justify your answer.
+
+    Boid display code.
+    For number of Boids less than 2000, time spent calculating positions will be significantly less than time drawing boids. It's faster to access the CPU than GPU. And the communication between CPU and GPU overhead.
+
+    I benchmarked the code and the following is the result:
+    update time: 0.00417s
+    draw time: 0.010193s
+
+
+d) How would you adapt the idea behind Boids to swarms of running
+   creatures (e.g. a herd of charging animals, an army of CGI
+   monsters, a crowd of simulated humans walking). Think of the
+   specific conditions you would need to add to the simulation
+   that is different from your Boids implementation
+
+   If I'm simulating a herd of charging animals, we can adopt rule1-3 with fast initial speed.
+
+   Specific conditions: 
+       - The movement, shape, and size of individual
+       
