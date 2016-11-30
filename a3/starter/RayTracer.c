@@ -390,6 +390,11 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
       specular.G += obj->alb.rs * current->col.G * pow(max(0, dot(&r, &b2)), obj->shinyness);
       specular.B += obj->alb.rs * current->col.B * pow(max(0, dot(&r, &b2)), obj->shinyness);
     
+    } else {
+      ambient = {1-obj->alpha, 1-obj->alpha, 1-obj->alpha};
+      specular = {1-obj->alpha, 1-obj->alpha, 1-obj->alpha};
+      diffuse = {1-obj->alpha, 1-obj->alpha, 1-obj->alpha};
+    }
 
       if (depth < MAX_DEPTH){
         point3D ms;
@@ -476,11 +481,6 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
 
       }
 
-    } else {
-      diffuse = {0};
-      specular = {0};
-      ambient = {0};
-    }
     
     current = current->next;
     free(light);
