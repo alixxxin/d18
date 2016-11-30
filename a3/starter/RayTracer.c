@@ -70,7 +70,7 @@ void buildScene(void)
   Translate(o,0,12,15);
   // RotateX(o,PI/2.25);
   invert(&o->T[0][0],&o->Tinv[0][0]);
-  loadTexture(o,"./mytex/starry_night.ppm");
+  loadTexture(o,"./mytex/blue_sky_background.ppm");
   // loadTexture(o,"./texture/landscape.ppm", 1, &texture_list);
   // loadTexture(o,"./texture/stone_normal.ppm", 2, &texture_list);
   insertObject(o,&object_list);
@@ -78,12 +78,12 @@ void buildScene(void)
 
  // Let's add a plane
  // Note the parameters: ra, rd, rs, rg, R, G, B, alpha, r_index, and shinyness)
- o=newPlane(.5,.75,.05,.05,.55,.8,.75,1,1,2);	// Note the plane is highly-reflective (rs=rg=.75) so we
+ o=newPlane(.5,.75,.75,.75,.55,.8,.75,1,1,2);	// Note the plane is highly-reflective (rs=rg=.75) so we
 						// should see some reflections if all is done properly.
 						// Colour is close to cyan, and currently the plane is
 						// completely opaque (alpha=1). The refraction index is
 						// meaningless since alpha=1
- Scale(o,6,6,1);				// Do a few transforms...
+ Scale(o,12,6,1);				// Do a few transforms...
  // Scale(o, 0.8, 0.8, 0.8);
  // RotateZ(o,PI/1.20);
  RotateX(o,PI/2.25);
@@ -92,8 +92,21 @@ void buildScene(void)
  invert(&o->T[0][0],&o->Tinv[0][0]);		// Very important! compute
 						// and store the inverse
 						// transform for this object!
- loadTexture(o,"./mytex/veggies.ppm");
+ loadTexture(o,"./mytex/pineapple.ppm");
  insertObject(o,&object_list);			// Insert into object list
+
+ // o=newPlane(.5,.75,.75,.75,.1,.1,.1,0.1,1,2); // Note the plane is highly-reflective (rs=rg=.75) so we
+ // Scale(o,11,5.5,5);       // Do a few transforms...
+ // RotateX(o,PI/2.25);
+ // // RotateY(o, PI/);
+ // Translate(o,0,-2.5,10);
+ // invert(&o->T[0][0],&o->Tinv[0][0]);    // Very important! compute
+ //            // and store the inverse
+ //            // transform for this object!
+ // insertObject(o,&object_list);      // Insert into object list
+
+
+
 
 
   // o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
@@ -114,6 +127,21 @@ void buildScene(void)
  invert(&o->T[0][0],&o->Tinv[0][0]);
  loadTexture(o,"./mytex/planets/venmap.ppm");
  insertObject(o,&object_list);
+
+
+
+
+ o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
+ Scale(o,0.2,0.2,0.2);
+ // Scale(o, 0.8, 0.8, 0.8);
+ RotateY(o,PI/2);
+ Translate(o, -4, 0.6, 2);
+ invert(&o->T[0][0],&o->Tinv[0][0]);
+ loadTexture(o,"./mytex/planets/venmap.ppm");
+ insertObject(o,&object_list);
+
+
+
 
  o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
  Scale(o,0.35,0.35,0.35);
@@ -205,14 +233,15 @@ void buildScene(void)
  Translate(o,1.75,1.25,3.5);
  invert(&o->T[0][0],&o->Tinv[0][0]);
  loadTexture(o,"./mytex/planets/saturnmap.ppm");
-
  insertObject(o,&object_list);
 
 
 
-  o=newSphere(.05,.25,.75,.95,.68,.92,0.92,0.3,1.5,3);
-  Scale(o,1,1,1);
-  Translate(o,0 ,-2,3.8);
+  o=newSphere(.05,.25,.75,.95,1,1,1,0.3,1.5,3);
+  Scale(o,1.5,1.5,1.5);
+  Translate(o,2,-1,3.5);
+ // Translate(o,2,1.25,3.5);
+
   invert(&o->T[0][0],&o->Tinv[0][0]);
   insertObject(o,&object_list);
 
@@ -362,9 +391,6 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
       specular.B += obj->alb.rs * current->col.B * pow(max(0, dot(&r, &b2)), obj->shinyness);
     
 
-    // printf("ambient:(%f,%f,%f), diffuse:(%f,%f,%f), specular:(%f,%f,%f)\n",
-    //  ambient.R, ambient.G, ambient.B, diffuse.R, diffuse.G, diffuse.B, specular.R, specular.G, specular.B);
-
       if (depth < MAX_DEPTH){
         point3D ms;
         colourRGB E_spec;
@@ -395,57 +421,57 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
         if (obj->alpha < 1) {
 
           double x,y,z;
-      double index_ratio;
-      double dot_n_d, sqrt_value, temp_value;
-      point3D refr_dir;
-      point3D relative_n;
+          double index_ratio;
+          double dot_n_d, sqrt_value, temp_value;
+          point3D refr_dir;
+          point3D relative_n;
 
-      // refr_dir = index_ratio*d + 
-      //      {index_ratio*dot(n, d) - 
-      //        sqrt[1 - (index_ratio)^2*(1 - dot(n, d)^2)] } * n
+          // refr_dir = index_ratio*d + 
+          //      {index_ratio*dot(n, d) - 
+          //        sqrt[1 - (index_ratio)^2*(1 - dot(n, d)^2)] } * n
 
-      // check if ray entering or exiting the object
-      // calculate corresponding index_ratio and dot(n, d)
-      dot_n_d = dot(n, &ray->d);
-      if ( dot_n_d > 0){
-        // n ,d same direction, exiting the object 
-        index_ratio =  obj->r_index;
-        // set normal to other side of the surface
-        relative_n.px = -n->px;
-        relative_n.py = -n->py;
-        relative_n.pz = -n->pz;
-        relative_n.pw = 1;
-        // update dot_n_d
-        dot_n_d = dot(&relative_n, &ray->d);
-      } else{
-        // entering the object
-        index_ratio = 1/obj->r_index;
-        relative_n.px = n->px;
-        relative_n.py = n->py;
-        relative_n.pz = n->pz;
-        relative_n.pw = 1;
-      }
-      sqrt_value = 1 - pow(index_ratio, 2) * (1 - pow(dot_n_d, 2));
-      if (sqrt_value >= 0) {
+          // check if ray entering or exiting the object
+          // calculate corresponding index_ratio and dot(n, d)
+          dot_n_d = dot(n, &ray->d);
+          if ( dot_n_d > 0){
+            // n ,d same direction, exiting the object 
+            index_ratio =  obj->r_index;
+            // set normal to other side of the surface
+            relative_n.px = -n->px;
+            relative_n.py = -n->py;
+            relative_n.pz = -n->pz;
+            relative_n.pw = 1;
+            // update dot_n_d
+            dot_n_d = dot(&relative_n, &ray->d);
+          } else{
+            // entering the object
+            index_ratio = 1/obj->r_index;
+            relative_n.px = n->px;
+            relative_n.py = n->py;
+            relative_n.pz = n->pz;
+            relative_n.pw = 1;
+          }
+          sqrt_value = 1 - pow(index_ratio, 2) * (1 - pow(dot_n_d, 2));
+          if (sqrt_value >= 0) {
 
-        temp_value = index_ratio * dot_n_d - sqrt(sqrt_value);
-    
-        refr_dir.px = index_ratio * ray->d.px + temp_value * relative_n.px;
-        refr_dir.py = index_ratio * ray->d.py + temp_value * relative_n.py;
-        refr_dir.pz = index_ratio * ray->d.pz + temp_value * relative_n.pz;
-        refr_dir.pw = 1;
+            temp_value = index_ratio * dot_n_d - sqrt(sqrt_value);
         
-        refr_ray = newRay(p, &refr_dir);
-        rayTrace(refr_ray, depth++, &E_refr, obj);
-        
-        // Update color for refraction
-        E_refr.R = E_refr.R * (1 - obj->alpha);
-        E_refr.G = E_refr.G * (1 - obj->alpha);
-        E_refr.B = E_refr.B * (1 - obj->alpha);
+            refr_dir.px = index_ratio * ray->d.px + temp_value * relative_n.px;
+            refr_dir.py = index_ratio * ray->d.py + temp_value * relative_n.py;
+            refr_dir.pz = index_ratio * ray->d.pz + temp_value * relative_n.pz;
+            refr_dir.pw = 1;
+            
+            refr_ray = newRay(p, &refr_dir);
+            rayTrace(refr_ray, depth++, &E_refr, obj);
+            
+            // Update color for refraction
+            E_refr.R = E_refr.R * (1 - obj->alpha);
+            E_refr.G = E_refr.G * (1 - obj->alpha);
+            E_refr.B = E_refr.B * (1 - obj->alpha);
 
-        // Free refraction ray
-        free(refr_ray);
-      }
+            // Free refraction ray
+            free(refr_ray);
+          }
         }
 
       }
@@ -781,8 +807,8 @@ int main(int argc, char *argv[])
     // #pragma omp parallel for private (k, pc, d, ray, col)
     for (k=0; k< antialias_sample; k++) {
       // the pixel on view plane:
-      pc.px = cam->wl + (i + antialiasing * (drand48() - 0.5))*du;
-      pc.py = cam->wt + (j + antialiasing * (drand48() - 0.5))*dv;
+      pc.px = cam->wl + (i + antialiasing * (k % 2))*du;
+      pc.py = cam->wt + (j + antialiasing * (k / 2))*dv;
       pc.pz = cam->f;
       pc.pw = 1;
       // convert to the world coordinates
