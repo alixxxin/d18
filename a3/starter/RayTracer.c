@@ -215,7 +215,7 @@ void buildScene(void)
 
 
  o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
- Scale(o,1,1,1);
+ Scale(o,1.5,1.5,1.5);
  // Scale(o, 0.8, 0.8, 0.8);
  RotateZ(o,PI/1.5);
  Translate(o,1,1.65,6.0);
@@ -391,9 +391,9 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
       specular.B += obj->alb.rs * current->col.B * pow(max(0, dot(&r, &b2)), obj->shinyness);
     
     } else {
-      ambient = {1-obj->alpha, 1-obj->alpha, 1-obj->alpha};
-      specular = {1-obj->alpha, 1-obj->alpha, 1-obj->alpha};
-      diffuse = {1-obj->alpha, 1-obj->alpha, 1-obj->alpha};
+      ambient = {0};
+      specular = {0};
+      diffuse = {0};
     }
 
       if (depth < MAX_DEPTH){

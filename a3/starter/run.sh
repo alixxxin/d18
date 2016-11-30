@@ -2,5 +2,4 @@
 
 if test -f RayTracer; then rm RayTracer; fi
 ./compile.sh;
-./RayTracer 200 8 1 alixxxx
-eog alixxxx
+./RayTracer 2048 11 1 alixxxx_highres
