@@ -82,35 +82,118 @@ void buildScene(void)
  insertObject(o,&object_list);			// Insert into object list
 
 
-  o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
-  Scale(o,40,20,20);
-  // RotateZ(o,-PI/1.5);
-  Translate(o,0,12,15);
-  invert(&o->T[0][0],&o->Tinv[0][0]);
-  loadTexture(o,"./mytex/blue_sky_background.ppm");
-  insertObject(o,&object_list);
-
+  // o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
+  // Scale(o,40,20,20);
+  // // RotateZ(o,-PI/1.5);
+  // Translate(o,0,12,15);
+  // invert(&o->T[0][0],&o->Tinv[0][0]);
+  // loadTexture(o,"./mytex/blue_sky_background.ppm");
+  // insertObject(o,&object_list);
 
 
  // Let's add a couple spheres
  o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
- Scale(o,.75,.5,1.5);
+ Scale(o,0.2,0.2,0.2);
  // Scale(o, 0.8, 0.8, 0.8);
  RotateY(o,PI/2);
+ Translate(o, -1.9, 0.6, 2);
+ invert(&o->T[0][0],&o->Tinv[0][0]);
+ loadTexture(o,"./mytex/planets/venmap.ppm");
+ insertObject(o,&object_list);
+
+ o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
+ Scale(o,0.35,0.35,0.35);
+ // Scale(o, 0.8, 0.8, 0.8);
+ RotateY(o,PI/2);
+ Translate(o,-1.8,0.7,2.5);
+ invert(&o->T[0][0],&o->Tinv[0][0]);
+ loadTexture(o,"./mytex/planets/Mun1.ppm");
+ insertObject(o,&object_list);
+
+ o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
+ Scale(o,0.5,0.5,0.5);
+ // Scale(o, 0.8, 0.8, 0.8);
+ RotateY(o,PI/2);
+ Translate(o,-1.7,0.9,3);
+ invert(&o->T[0][0],&o->Tinv[0][0]);
+ loadTexture(o,"./mytex/planets/Pol1.ppm");
+ insertObject(o,&object_list);
+
+
+ o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
+ Scale(o,0.7,0.7,0.7);
+ // Scale(o, 0.8, 0.8, 0.8);
+ // RotateY(o,PI/2);
  Translate(o,-1.45,1.1,3.5);
  invert(&o->T[0][0],&o->Tinv[0][0]);
- loadTexture(o,"./mytex/pineapple.ppm");
+ loadTexture(o,"./mytex/planets/Vall1.ppm");
  insertObject(o,&object_list);
+
+
+ // o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
+
+ // // o=newPlane(.5,.75,.05,.05,.55,.8,.75,1,1,2); // Note the plane is highly-reflective (rs=rg=.75) so we
+ // //            // should see some reflections if all is done properly.
+ // //            // Colour is close to cyan, and currently the plane is
+ // //            // completely opaque (alpha=1). The refraction index is
+ // //            // meaningless since alpha=1
+ // Scale(o,1.5,1.2,0.3);        // Do a few transforms...
+ // // Scale(o, 0.8, 0.8, 0.8);
+ // RotateZ(o,PI/1.20);
+ // RotateX(o,PI/3.25);
+ // Translate(o,1.75,1.5,5.0);
+ // invert(&o->T[0][0],&o->Tinv[0][0]);    // Very important! compute
+ //            // and store the inverse
+ //            // transform for this object!
+ // loadTexture(o,"./mytex/planets/ring.ppm");
+ // insertObject(o,&object_list);      // Insert into object list
+
+
+ // o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
+ // Scale(o,2,1.2,0.4);
+ // // Scale(o, 0.8, 0.8, 0.8);
+ // RotateZ(o,PI/1.5);
+ // RotateX(o, -PI/2);
+ // RotateY(o, PI/5);
+ // Translate(o,1.75,1.25,5.0);
+ // invert(&o->T[0][0],&o->Tinv[0][0]);
+ // loadTexture(o,"./mytex/planets/saturnmap.ppm");
+ // insertObject(o,&object_list);
+
 
  o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
- Scale(o,.5,2.0,1.0);
+  Scale(o,1.6,1.6,1.6);
  // Scale(o, 0.8, 0.8, 0.8);
  RotateZ(o,PI/1.5);
- Translate(o,1.75,1.25,5.0);
+ Translate(o,-0.6,2,8.0);
  invert(&o->T[0][0],&o->Tinv[0][0]);
- loadTexture(o,"./mytex/bluey.ppm");
+ loadTexture(o,"./mytex/planets/Eve1.ppm");
 
  insertObject(o,&object_list);
+
+
+ o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
+ Scale(o,1,1,1);
+ // Scale(o, 0.8, 0.8, 0.8);
+ RotateZ(o,PI/1.5);
+ Translate(o,1,1.65,6.0);
+ invert(&o->T[0][0],&o->Tinv[0][0]);
+ loadTexture(o,"./mytex/planets/Minmus1.ppm");
+
+ insertObject(o,&object_list);
+
+
+
+ o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
+ Scale(o,1,1,1);
+ // Scale(o, 0.8, 0.8, 0.8);
+ RotateZ(o,PI/1.5);
+ Translate(o,1.75,1.25,3.5);
+ invert(&o->T[0][0],&o->Tinv[0][0]);
+ loadTexture(o,"./mytex/planets/saturnmap.ppm");
+
+ insertObject(o,&object_list);
+
 
   // o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
   // Scale(o,40,20,20);
@@ -443,8 +526,8 @@ int main(int argc, char *argv[])
  unsigned char *rgbIm;
  int offset;
 
- struct image* backg = readPPMimage("./mytex/blue_sky_background.ppm");
- unsigned char *backgroundimage=(unsigned char *)backg->rgbdata;
+ // struct image* backg = readPPMimage("./mytex/blue_sky_background.ppm");
+ // unsigned char *backgroundimage=(unsigned char *)backg->rgbdata;
 
  int antialias_sample;
  int k;
@@ -595,9 +678,9 @@ int main(int argc, char *argv[])
     offset = (i+j*sx) * 3; // 3 for r g and b
 
      // Set up background colour here
-     background.R=backgroundimage[offset];
-     background.G=backgroundimage[offset+1];
-     background.B=backgroundimage[offset+2];
+     background.R=-1; // backgroundimage[offset];
+     background.G=-1; // backgroundimage[offset+1];
+     background.B=-1; // backgroundimage[offset+2];
 
 
     ///////////////////////////////////////////////////////////////////
@@ -671,7 +754,7 @@ int main(int argc, char *argv[])
  // Exit section. Clean up and return.
  cleanup(object_list,light_list);		// Object and light lists
  deleteImage(im);				// Rendered image
- deleteImage(backg);
+ // deleteImage(backg);
  free(cam);					// camera view
  exit(0);
 }

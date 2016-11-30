@@ -151,7 +151,8 @@ struct object3D *newPlane(double ra, double rd, double rs, double rg, double r, 
  return(plane);
 }
 
-struct object3D *newSphere(double ra, double rd, double rs, double rg, double r, double g, double b, double alpha, double r_index, double shiny)
+struct object3D *newSphere(double ra, double rd, double rs, double rg, 
+  double r, double g, double b, double alpha, double r_index, double shiny)
 {
  // Intialize a new sphere with the specified parameters:
  // ra, rd, rs, rg - Albedos for the components of the Phong model
