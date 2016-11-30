@@ -63,6 +63,19 @@ void buildScene(void)
  // Insert a couple of objects. A plane and two spheres
  // with some transformations.
 
+
+  o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
+  Scale(o,40,20,20);
+  // RotateZ(o,-PI/1.5);
+  Translate(o,0,12,15);
+  // RotateX(o,PI/2.25);
+  invert(&o->T[0][0],&o->Tinv[0][0]);
+  loadTexture(o,"./mytex/starry_night.ppm");
+  // loadTexture(o,"./texture/landscape.ppm", 1, &texture_list);
+  // loadTexture(o,"./texture/stone_normal.ppm", 2, &texture_list);
+  insertObject(o,&object_list);
+
+
  // Let's add a plane
  // Note the parameters: ra, rd, rs, rg, R, G, B, alpha, r_index, and shinyness)
  o=newPlane(.5,.75,.05,.05,.55,.8,.75,1,1,2);	// Note the plane is highly-reflective (rs=rg=.75) so we
@@ -72,8 +85,9 @@ void buildScene(void)
 						// meaningless since alpha=1
  Scale(o,6,6,1);				// Do a few transforms...
  // Scale(o, 0.8, 0.8, 0.8);
- RotateZ(o,PI/1.20);
+ // RotateZ(o,PI/1.20);
  RotateX(o,PI/2.25);
+ // RotateY(o, PI/);
  Translate(o,0,-3,10);
  invert(&o->T[0][0],&o->Tinv[0][0]);		// Very important! compute
 						// and store the inverse
@@ -195,6 +209,15 @@ void buildScene(void)
  insertObject(o,&object_list);
 
 
+
+  o=newSphere(.05,.25,.75,.95,.68,.92,0.92,0.3,1.5,3);
+  Scale(o,1,1,1);
+  Translate(o,0 ,-2,3.8);
+  invert(&o->T[0][0],&o->Tinv[0][0]);
+  insertObject(o,&object_list);
+
+
+
   // o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
   // Scale(o,40,20,20);
   // // RotateZ(o,-PI/1.5);
@@ -283,6 +306,12 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
  struct point3D r;
  struct point3D b2;
 
+            struct colourRGB E_refr;
+            E_refr.R = 0;
+            E_refr.G = 0;
+            E_refr.B = 0;
+  struct ray3D *refr_ray;
+
  pointLS * current = light_list;
 
  while (current) {
@@ -362,6 +391,63 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
 
           free(ref_ray);
         }
+
+        if (obj->alpha < 1) {
+
+          double x,y,z;
+      double index_ratio;
+      double dot_n_d, sqrt_value, temp_value;
+      point3D refr_dir;
+      point3D relative_n;
+
+      // refr_dir = index_ratio*d + 
+      //      {index_ratio*dot(n, d) - 
+      //        sqrt[1 - (index_ratio)^2*(1 - dot(n, d)^2)] } * n
+
+      // check if ray entering or exiting the object
+      // calculate corresponding index_ratio and dot(n, d)
+      dot_n_d = dot(n, &ray->d);
+      if ( dot_n_d > 0){
+        // n ,d same direction, exiting the object 
+        index_ratio =  obj->r_index;
+        // set normal to other side of the surface
+        relative_n.px = -n->px;
+        relative_n.py = -n->py;
+        relative_n.pz = -n->pz;
+        relative_n.pw = 1;
+        // update dot_n_d
+        dot_n_d = dot(&relative_n, &ray->d);
+      } else{
+        // entering the object
+        index_ratio = 1/obj->r_index;
+        relative_n.px = n->px;
+        relative_n.py = n->py;
+        relative_n.pz = n->pz;
+        relative_n.pw = 1;
+      }
+      sqrt_value = 1 - pow(index_ratio, 2) * (1 - pow(dot_n_d, 2));
+      if (sqrt_value >= 0) {
+
+        temp_value = index_ratio * dot_n_d - sqrt(sqrt_value);
+    
+        refr_dir.px = index_ratio * ray->d.px + temp_value * relative_n.px;
+        refr_dir.py = index_ratio * ray->d.py + temp_value * relative_n.py;
+        refr_dir.pz = index_ratio * ray->d.pz + temp_value * relative_n.pz;
+        refr_dir.pw = 1;
+        
+        refr_ray = newRay(p, &refr_dir);
+        rayTrace(refr_ray, depth++, &E_refr, obj);
+        
+        // Update color for refraction
+        E_refr.R = E_refr.R * (1 - obj->alpha);
+        E_refr.G = E_refr.G * (1 - obj->alpha);
+        E_refr.B = E_refr.B * (1 - obj->alpha);
+
+        // Free refraction ray
+        free(refr_ray);
+      }
+        }
+
       }
 
     } else {
@@ -375,9 +461,9 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
  }
 
  // Be sure to update 'col' with the final colour computed here!
- col->R = R * clip(ambient.R + diffuse.R + specular.R);
- col->G = G * clip(ambient.G + diffuse.G + specular.G);
- col->B = B * clip(ambient.B + diffuse.B + specular.B);
+ col->R = clip(R * (ambient.R + diffuse.R + specular.R) * obj->alpha + E_refr.R);
+ col->G = clip(G * (ambient.G + diffuse.G + specular.G) * obj->alpha + E_refr.G);
+ col->B = clip(B * (ambient.B + diffuse.B + specular.B) * obj->alpha + E_refr.B);
  // printf("(%f, %f, %f)\n", col->R, col->G, col->B);
 
 // testing the normal gradient
@@ -692,7 +778,7 @@ int main(int argc, char *argv[])
     aa_color_sum.G = 0;
     aa_color_sum.B = 0;
 
-    #pragma omp parallel for private (k, pc, d, ray, col)
+    // #pragma omp parallel for private (k, pc, d, ray, col)
     for (k=0; k< antialias_sample; k++) {
       // the pixel on view plane:
       pc.px = cam->wl + (i + antialiasing * (drand48() - 0.5))*du;
