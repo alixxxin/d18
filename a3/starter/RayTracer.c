@@ -95,28 +95,6 @@ void buildScene(void)
  loadTexture(o,"./mytex/planets/Dres1.ppm");
  insertObject(o,&object_list);			// Insert into object list
 
- // o=newPlane(.5,.75,.75,.75,.1,.1,.1,0.1,1,2); // Note the plane is highly-reflective (rs=rg=.75) so we
- // Scale(o,11,5.5,5);       // Do a few transforms...
- // RotateX(o,PI/2.25);
- // // RotateY(o, PI/);
- // Translate(o,0,-2.5,10);
- // invert(&o->T[0][0],&o->Tinv[0][0]);    // Very important! compute
- //            // and store the inverse
- //            // transform for this object!
- // insertObject(o,&object_list);      // Insert into object list
-
-
-
-
-
-  // o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
-  // Scale(o,40,20,20);
-  // // RotateZ(o,-PI/1.5);
-  // Translate(o,0,12,15);
-  // invert(&o->T[0][0],&o->Tinv[0][0]);
-  // loadTexture(o,"./mytex/blue_sky_background.ppm");
-  // insertObject(o,&object_list);
-
 
  // Let's add a couple spheres
  o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
@@ -168,37 +146,6 @@ void buildScene(void)
  insertObject(o,&object_list);
 
 
- // o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
-
- // // o=newPlane(.5,.75,.05,.05,.55,.8,.75,1,1,2); // Note the plane is highly-reflective (rs=rg=.75) so we
- // //            // should see some reflections if all is done properly.
- // //            // Colour is close to cyan, and currently the plane is
- // //            // completely opaque (alpha=1). The refraction index is
- // //            // meaningless since alpha=1
- // Scale(o,1.5,1.2,0.3);        // Do a few transforms...
- // // Scale(o, 0.8, 0.8, 0.8);
- // RotateZ(o,PI/1.20);
- // RotateX(o,PI/3.25);
- // Translate(o,1.75,1.5,5.0);
- // invert(&o->T[0][0],&o->Tinv[0][0]);    // Very important! compute
- //            // and store the inverse
- //            // transform for this object!
- // loadTexture(o,"./mytex/planets/ring.ppm");
- // insertObject(o,&object_list);      // Insert into object list
-
-
- // o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
- // Scale(o,2,1.2,0.4);
- // // Scale(o, 0.8, 0.8, 0.8);
- // RotateZ(o,PI/1.5);
- // RotateX(o, -PI/2);
- // RotateY(o, PI/5);
- // Translate(o,1.75,1.25,5.0);
- // invert(&o->T[0][0],&o->Tinv[0][0]);
- // loadTexture(o,"./mytex/planets/saturnmap.ppm");
- // insertObject(o,&object_list);
-
-
  o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
   Scale(o,1.6,1.6,1.6);
  // Scale(o, 0.8, 0.8, 0.8);
@@ -240,37 +187,18 @@ void buildScene(void)
   o=newSphere(.05,.25,.75,.95,1,1,1,0.3,1.5,3);
   Scale(o,1.5,1.5,1.5);
   Translate(o,2,-1,1.5);
- // Translate(o,2,1.25,3.5);
-
   invert(&o->T[0][0],&o->Tinv[0][0]);
   insertObject(o,&object_list);
 
-
-
-  // o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
-  // Scale(o,40,20,20);
-  // // RotateZ(o,-PI/1.5);
-  // Translate(o,0,12,15);
-  // invert(&o->T[0][0],&o->Tinv[0][0]);
-  // loadTexture(o,"./texture/starry_night.ppm");
-  // insertObject(o,&object_list);
 
  o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
  Scale(o,.5,.5,.5);
  Translate(o,3,5,3.5);
  invert(&o->T[0][0],&o->Tinv[0][0]);
- // loadTexture(o,"./mytex/planets/saturnmap.ppm");
  loadTexture(o,"./mytex/ferrero.ppm");
 
  insertObject(o,&object_list);
 
- // Insert a single point light source.
- // p.px=0;
- // p.py=15.5;
- // p.pz=-5.5;
- // p.pw=1;
- // l=newPLS(&p,1,1,1);//.75,.75,.75);
- // insertPLS(l,&light_list);
 
   addAreaLight(5, 3, 0, -1, 1,
              5, 25.5,12, 2,5,
