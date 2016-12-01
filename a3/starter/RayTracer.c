@@ -92,7 +92,7 @@ void buildScene(void)
  invert(&o->T[0][0],&o->Tinv[0][0]);		// Very important! compute
 						// and store the inverse
 						// transform for this object!
- loadTexture(o,"./mytex/pineapple.ppm");
+ loadTexture(o,"./mytex/Moho1.ppm");
  insertObject(o,&object_list);			// Insert into object list
 
  // o=newPlane(.5,.75,.75,.75,.1,.1,.1,0.1,1,2); // Note the plane is highly-reflective (rs=rg=.75) so we
@@ -217,8 +217,9 @@ void buildScene(void)
  o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
  Scale(o,1.5,1.5,1.5);
  // Scale(o, 0.8, 0.8, 0.8);
+ RotateX(o, PI);
  RotateZ(o,PI/1.5);
- Translate(o,1,1.65,6.0);
+ Translate(o,1,2,6.0);
  invert(&o->T[0][0],&o->Tinv[0][0]);
  loadTexture(o,"./mytex/planets/Minmus1.ppm");
 
@@ -230,9 +231,12 @@ void buildScene(void)
  Scale(o,1,1,1);
  // Scale(o, 0.8, 0.8, 0.8);
  RotateZ(o,PI/1.5);
+ RotateX(o,PI/1.7);
  Translate(o,1.75,1.25,3.5);
  invert(&o->T[0][0],&o->Tinv[0][0]);
- loadTexture(o,"./mytex/planets/saturnmap.ppm");
+ // loadTexture(o,"./mytex/planets/saturnmap.ppm");
+ loadTexture(o,"./mytex/ferrero.ppm");
+
  insertObject(o,&object_list);
 
 
@@ -335,11 +339,20 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
  struct point3D r;
  struct point3D b2;
 
-            struct colourRGB E_refr;
-            E_refr.R = 0;
-            E_refr.G = 0;
-            E_refr.B = 0;
+  struct colourRGB E_refr;
+  E_refr.R = 0;
+  E_refr.G = 0;
+  E_refr.B = 0;
   struct ray3D *refr_ray;
+
+
+  struct colourRGB E_refr_sec;
+  E_refr_sec.R = 0;
+  E_refr_sec.G = 0;
+  E_refr_sec.B = 0;
+  struct ray3D *refr_ray_sec;
+
+
 
  pointLS * current = light_list;
 
@@ -391,9 +404,73 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
       specular.B += obj->alb.rs * current->col.B * pow(max(0, dot(&r, &b2)), obj->shinyness);
     
     } else {
-      ambient = {0};
-      specular = {0};
-      diffuse = {0};
+      if (temp_obj->alpha < 1) {
+        // alixxxxx
+
+          double x,y,z;
+          double index_ratio;
+          double dot_n_d, sqrt_value, temp_value;
+          point3D refr_dir;
+          point3D relative_n;
+
+          // refr_dir = index_ratio*d + 
+          //      {index_ratio*dot(n, d) - 
+          //        sqrt[1 - (index_ratio)^2*(1 - dot(n, d)^2)] } * n
+
+          // check if ray entering or exiting the object
+          // calculate corresponding index_ratio and dot(n, d)
+          dot_n_d = dot(n, &ray->d);
+          if ( dot_n_d > 0){
+            // n ,d same direction, exiting the object 
+            index_ratio =  temp_obj->r_index;
+            // set normal to other side of the surface
+            relative_n.px = -n->px;
+            relative_n.py = -n->py;
+            relative_n.pz = -n->pz;
+            relative_n.pw = 1;
+            // update dot_n_d
+            dot_n_d = dot(&relative_n, &ray->d);
+          } else{
+            // entering the object
+            index_ratio = 1/temp_obj->r_index;
+            relative_n.px = n->px;
+            relative_n.py = n->py;
+            relative_n.pz = n->pz;
+            relative_n.pw = 1;
+          }
+          sqrt_value = 1 - pow(index_ratio, 2) * (1 - pow(dot_n_d, 2));
+          if (sqrt_value >= 0) {
+
+            temp_value = index_ratio * dot_n_d - sqrt(sqrt_value);
+        
+            refr_dir.px = index_ratio * ray->d.px + temp_value * relative_n.px;
+            refr_dir.py = index_ratio * ray->d.py + temp_value * relative_n.py;
+            refr_dir.pz = index_ratio * ray->d.pz + temp_value * relative_n.pz;
+            refr_dir.pw = 1;
+            
+            refr_ray_sec = newRay(p, &refr_dir);
+            rayTrace(refr_ray_sec, depth++, &E_refr_sec, temp_obj);
+            
+            // Update color for refraction
+            E_refr_sec.R = E_refr_sec.R * (1 - temp_obj->alpha);
+            E_refr_sec.G = E_refr_sec.G * (1 - temp_obj->alpha);
+            E_refr_sec.B = E_refr_sec.B * (1 - temp_obj->alpha);
+
+            // Free refraction ray
+            free(refr_ray_sec);
+
+            ambient.R = E_refr_sec.R;
+            ambient.G = E_refr_sec.G;
+            ambient.B = E_refr_sec.B;
+
+          }
+
+          // alixxxxx
+      } else {
+        ambient = {0};
+        specular = {0};
+        diffuse = {0};
+      }
     }
 
       if (depth < MAX_DEPTH){
