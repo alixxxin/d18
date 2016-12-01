@@ -65,12 +65,12 @@ void buildScene(void)
 
 
   o=newPlane(.5,.75,.35,.05,0.4,0.4,0.4,1,1,2);
-  Scale(o,40,20,20);
+  Scale(o,20,10,10);
   // RotateZ(o,-PI/1.5);
-  Translate(o,0,12,15);
+  Translate(o,0,5,15);
   // RotateX(o,PI/2.25);
   invert(&o->T[0][0],&o->Tinv[0][0]);
-  loadTexture(o,"./mytex/blue_sky_background.ppm");
+  loadTexture(o,"./mytex/sky.ppm");
   // loadTexture(o,"./texture/landscape.ppm", 1, &texture_list);
   // loadTexture(o,"./texture/stone_normal.ppm", 2, &texture_list);
   insertObject(o,&object_list);
@@ -236,10 +236,10 @@ void buildScene(void)
  insertObject(o,&object_list);
 
 
-
+// my crystal ball
   o=newSphere(.05,.25,.75,.95,1,1,1,0.3,1.5,3);
   Scale(o,1.5,1.5,1.5);
-  Translate(o,2,-1,3.5);
+  Translate(o,2,-1,1.5);
  // Translate(o,2,1.25,3.5);
 
   invert(&o->T[0][0],&o->Tinv[0][0]);
@@ -255,7 +255,14 @@ void buildScene(void)
   // loadTexture(o,"./texture/starry_night.ppm");
   // insertObject(o,&object_list);
 
+ o=newSphere(.05,.95,.95,.75,.75,.95,.55,1,1,6);
+ Scale(o,.5,.5,.5);
+ Translate(o,3,5,3.5);
+ invert(&o->T[0][0],&o->Tinv[0][0]);
+ // loadTexture(o,"./mytex/planets/saturnmap.ppm");
+ loadTexture(o,"./mytex/ferrero.ppm");
 
+ insertObject(o,&object_list);
 
  // Insert a single point light source.
  // p.px=0;
@@ -351,17 +358,18 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
  struct point3D r;
  struct point3D b2;
 
-  struct colourRGB E_refr;
-  E_refr.R = 0;
-  E_refr.G = 0;
-  E_refr.B = 0;
+  // for refraction background
+  struct colourRGB refraction;
+  refraction.R = 0;
+  refraction.G = 0;
+  refraction.B = 0;
   struct ray3D *refr_ray;
 
-
-  struct colourRGB E_refr_sec;
-  E_refr_sec.R = 0;
-  E_refr_sec.G = 0;
-  E_refr_sec.B = 0;
+  // for shadow refraction
+  struct colourRGB refraction_sec;
+  refraction_sec.R = 0;
+  refraction_sec.G = 0;
+  refraction_sec.B = 0;
   struct ray3D *refr_ray_sec;
 
 
@@ -373,8 +381,6 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
     memcpy(&light_direction, &current->p0, sizeof(struct point3D));
     subVectors(p, &light_direction);
     light = newRay(p, &light_direction);
-
-// printf("%f, %f, %f, %f, %f, %f\n", p->px, p->py, p->pz, light_direction.px, light_direction.py, light_direction.pz);
 
     findFirstHit(light, &temp_lambda, obj, &temp_obj, &temp_p, &temp_n, &temp_a, &temp_b);
 
@@ -404,7 +410,7 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
       subVectors(&light_direction, &r);
       normalize(&r);
 
-      // // find b:= point to camera
+      // // find b = point to camera
       b2.px = -ray->d.px;
       b2.py = -ray->d.py;
       b2.pz = -ray->d.pz;
@@ -416,69 +422,56 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
       specular.B += obj->alb.rs * current->col.B * pow(max(0, dot(&r, &b2)), obj->shinyness);
     
     } else {
+      // update the refraction from pixel in shadow
+
+      // Refraction for alpha<1 objects
+      // reference->http://www.flipcode.com/archives/Raytracing_Topics_Techniques-Part_3_Refractions_and_Beers_Law.shtml
       if (temp_obj->alpha < 1) {
-        // alixxxxx
 
-          double x,y,z;
+          // double x,y,z;
           double index_ratio;
-          double dot_n_d, sqrt_value, temp_value;
+          double dot_n_d, cosT2, temp_value;
           point3D refr_dir;
-          point3D relative_n;
+          point3D temp_normal;
 
-          // refr_dir = index_ratio*d + 
-          //      {index_ratio*dot(n, d) - 
-          //        sqrt[1 - (index_ratio)^2*(1 - dot(n, d)^2)] } * n
-
-          // check if ray entering or exiting the object
-          // calculate corresponding index_ratio and dot(n, d)
           dot_n_d = dot(n, &ray->d);
           if ( dot_n_d > 0){
-            // n ,d same direction, exiting the object 
             index_ratio =  temp_obj->r_index;
-            // set normal to other side of the surface
-            relative_n.px = -n->px;
-            relative_n.py = -n->py;
-            relative_n.pz = -n->pz;
-            relative_n.pw = 1;
-            // update dot_n_d
-            dot_n_d = dot(&relative_n, &ray->d);
+            temp_normal.px = -n->px;
+            temp_normal.py = -n->py;
+            temp_normal.pz = -n->pz;
+            temp_normal.pw = 1;
+            dot_n_d = dot(&temp_normal, &ray->d);
           } else{
-            // entering the object
             index_ratio = 1/temp_obj->r_index;
-            relative_n.px = n->px;
-            relative_n.py = n->py;
-            relative_n.pz = n->pz;
-            relative_n.pw = 1;
+            temp_normal.px = n->px;
+            temp_normal.py = n->py;
+            temp_normal.pz = n->pz;
+            temp_normal.pw = 1;
           }
-          sqrt_value = 1 - pow(index_ratio, 2) * (1 - pow(dot_n_d, 2));
-          if (sqrt_value >= 0) {
+          cosT2 = 1 - pow(index_ratio, 2) * (1 - pow(dot_n_d, 2));
+          if (cosT2 >= 0) {
 
-            temp_value = index_ratio * dot_n_d - sqrt(sqrt_value);
+            temp_value = index_ratio * dot_n_d - sqrt(cosT2);
         
-            refr_dir.px = index_ratio * ray->d.px + temp_value * relative_n.px;
-            refr_dir.py = index_ratio * ray->d.py + temp_value * relative_n.py;
-            refr_dir.pz = index_ratio * ray->d.pz + temp_value * relative_n.pz;
+            refr_dir.px = index_ratio * ray->d.px + temp_value * temp_normal.px + 0.001;
+            refr_dir.py = index_ratio * ray->d.py + temp_value * temp_normal.py + 0.001;
+            refr_dir.pz = index_ratio * ray->d.pz + temp_value * temp_normal.pz + 0.001;
             refr_dir.pw = 1;
             
             refr_ray_sec = newRay(p, &refr_dir);
-            rayTrace(refr_ray_sec, depth++, &E_refr_sec, temp_obj);
+            rayTrace(refr_ray_sec, depth++, &refraction_sec, temp_obj);
             
-            // Update color for refraction
-            E_refr_sec.R = E_refr_sec.R * (1 - temp_obj->alpha);
-            E_refr_sec.G = E_refr_sec.G * (1 - temp_obj->alpha);
-            E_refr_sec.B = E_refr_sec.B * (1 - temp_obj->alpha);
+            ambient.R = refraction_sec.R * (1 - temp_obj->alpha);
+            ambient.G = refraction_sec.G * (1 - temp_obj->alpha);
+            ambient.B = refraction_sec.B * (1 - temp_obj->alpha);
 
-            // Free refraction ray
             free(refr_ray_sec);
-
-            ambient.R = E_refr_sec.R;
-            ambient.G = E_refr_sec.G;
-            ambient.B = E_refr_sec.B;
 
           }
 
-          // alixxxxx
       } else {
+        // real shadow
         ambient = {0};
         specular = {0};
         diffuse = {0};
@@ -488,23 +481,17 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
       if (depth < MAX_DEPTH){
         point3D ms;
         colourRGB E_spec;
-        // compute mirror direction: ms = - 2 * dot(d, n) * n + d
         double temp_dot_value = dot(&ray->d, n);
         ms.px = - 2 * temp_dot_value * n->px;
         ms.py = - 2 * temp_dot_value * n->py;
         ms.pz = - 2 * temp_dot_value * n->pz;
         ms.pw = 1;
-        // construct new mirror direction
-        // memcpy(&m, &ray->d, sizeof(struct point3D));
         addVectors(&ray->d, &ms);
         normalize(&ms);
 
-        // If OBJ has specular reflection
         if (obj->alb.rs != 0){
-          // create the ray from intersection point p along mirror direction 
           ray3D * ref_ray = newRay(p, &ms);
           rayTrace(ref_ray, depth++, &E_spec, obj);
-          // add reflected color E_spec in, scaled by rg
           specular.R += obj->alb.rg * E_spec.R * current->col.R;
           specular.G += obj->alb.rg * E_spec.G * current->col.G;
           specular.B += obj->alb.rg * E_spec.B * current->col.B;
@@ -512,58 +499,48 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
           free(ref_ray);
         }
 
+        // Refraction for alpha<1 objects
+        // reference->http://www.flipcode.com/archives/Raytracing_Topics_Techniques-Part_3_Refractions_and_Beers_Law.shtml
+
         if (obj->alpha < 1) {
 
-          double x,y,z;
+          // double x,y,z;
           double index_ratio;
-          double dot_n_d, sqrt_value, temp_value;
+          double dot_n_d, cosT2, temp_value;
           point3D refr_dir;
-          point3D relative_n;
+          point3D temp_normal;
 
-          // refr_dir = index_ratio*d + 
-          //      {index_ratio*dot(n, d) - 
-          //        sqrt[1 - (index_ratio)^2*(1 - dot(n, d)^2)] } * n
-
-          // check if ray entering or exiting the object
-          // calculate corresponding index_ratio and dot(n, d)
           dot_n_d = dot(n, &ray->d);
           if ( dot_n_d > 0){
-            // n ,d same direction, exiting the object 
-            index_ratio =  obj->r_index;
-            // set normal to other side of the surface
-            relative_n.px = -n->px;
-            relative_n.py = -n->py;
-            relative_n.pz = -n->pz;
-            relative_n.pw = 1;
-            // update dot_n_d
-            dot_n_d = dot(&relative_n, &ray->d);
+            temp_normal.px = -n->px;
+            temp_normal.py = -n->py;
+            temp_normal.pz = -n->pz;
+            temp_normal.pw = 1;
+            dot_n_d = dot(&temp_normal, &ray->d);
           } else{
-            // entering the object
             index_ratio = 1/obj->r_index;
-            relative_n.px = n->px;
-            relative_n.py = n->py;
-            relative_n.pz = n->pz;
-            relative_n.pw = 1;
+            temp_normal.px = n->px;
+            temp_normal.py = n->py;
+            temp_normal.pz = n->pz;
+            temp_normal.pw = 1;
           }
-          sqrt_value = 1 - pow(index_ratio, 2) * (1 - pow(dot_n_d, 2));
-          if (sqrt_value >= 0) {
+          cosT2 = 1 - pow(index_ratio, 2) * (1 - pow(dot_n_d, 2));
+          if (cosT2 >= 0) {
 
-            temp_value = index_ratio * dot_n_d - sqrt(sqrt_value);
+            temp_value = index_ratio * dot_n_d - sqrt(cosT2);
         
-            refr_dir.px = index_ratio * ray->d.px + temp_value * relative_n.px;
-            refr_dir.py = index_ratio * ray->d.py + temp_value * relative_n.py;
-            refr_dir.pz = index_ratio * ray->d.pz + temp_value * relative_n.pz;
+            refr_dir.px = index_ratio * ray->d.px + temp_value * temp_normal.px;
+            refr_dir.py = index_ratio * ray->d.py + temp_value * temp_normal.py;
+            refr_dir.pz = index_ratio * ray->d.pz + temp_value * temp_normal.pz;
             refr_dir.pw = 1;
             
             refr_ray = newRay(p, &refr_dir);
-            rayTrace(refr_ray, depth++, &E_refr, obj);
+            rayTrace(refr_ray, depth++, &refraction, obj);
             
-            // Update color for refraction
-            E_refr.R = E_refr.R * (1 - obj->alpha);
-            E_refr.G = E_refr.G * (1 - obj->alpha);
-            E_refr.B = E_refr.B * (1 - obj->alpha);
+            refraction.R = refraction.R * (1 - obj->alpha);
+            refraction.G = refraction.G * (1 - obj->alpha);
+            refraction.B = refraction.B * (1 - obj->alpha);
 
-            // Free refraction ray
             free(refr_ray);
           }
         }
@@ -576,19 +553,10 @@ void rtShade(struct object3D *obj, struct point3D *p, struct point3D *n, struct 
  }
 
  // Be sure to update 'col' with the final colour computed here!
- col->R = clip(R * (ambient.R + diffuse.R + specular.R) * obj->alpha + E_refr.R);
- col->G = clip(G * (ambient.G + diffuse.G + specular.G) * obj->alpha + E_refr.G);
- col->B = clip(B * (ambient.B + diffuse.B + specular.B) * obj->alpha + E_refr.B);
- // printf("(%f, %f, %f)\n", col->R, col->G, col->B);
+ col->R = clip(R * (ambient.R + diffuse.R + specular.R) * obj->alpha + refraction.R);
+ col->G = clip(G * (ambient.G + diffuse.G + specular.G) * obj->alpha + refraction.G);
+ col->B = clip(B * (ambient.B + diffuse.B + specular.B) * obj->alpha + refraction.B);
 
-// testing the normal gradient
-// col->R = (n->px + 1)/2.0;
-// col->G = (n->py + 1)/2.0;
-// col->B = (n->pz + 1)/2.0;
-
-// free(&light);
-// free(&light_direction);
-// free(&temp_obj);
 
  return;
 
@@ -860,17 +828,11 @@ int main(int argc, char *argv[])
 
  fprintf(stderr,"Rendering row: ");
 
- /**
- * Reference: https://computing.llnl.gov/tutorials/openMP/
- * http://www.geeksforgeeks.org/multithreading-c-2/
- **/
+ // Reference -> https://msdn.microsoft.com/en-us/library/hh872235.aspx
  #pragma omp parallel for schedule(dynamic,32) shared(antialias_sample, rgbIm, object_list, light_list) private(j)
  for (j=0;j<sx;j++)		// For each of the pixels in the image
  {
   fprintf(stderr,"%d/%d, ",j,sx);
-  // if(j==100){
-  //   getchar();
-  // }
 
   #pragma omp parallel for private(k, pc, d, ray, col, aa_color_sum, offset, i)
   for (i=0;i<sx;i++)
@@ -910,7 +872,7 @@ int main(int argc, char *argv[])
       d.pw = 0;
       normalize(&d);
 
-      pc.px += d.px * 0.01;
+      pc.px += d.px * 0.01; // add some for numerical issue
       pc.py += d.py * 0.01;
       pc.pz += d.pz * 0.01;
 
