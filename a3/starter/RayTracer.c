@@ -92,7 +92,7 @@ void buildScene(void)
  invert(&o->T[0][0],&o->Tinv[0][0]);		// Very important! compute
 						// and store the inverse
 						// transform for this object!
- loadTexture(o,"./mytex/Moho1.ppm");
+ loadTexture(o,"./mytex/planets/Dres1.ppm");
  insertObject(o,&object_list);			// Insert into object list
 
  // o=newPlane(.5,.75,.75,.75,.1,.1,.1,0.1,1,2); // Note the plane is highly-reflective (rs=rg=.75) so we
@@ -123,24 +123,20 @@ void buildScene(void)
  Scale(o,0.2,0.2,0.2);
  // Scale(o, 0.8, 0.8, 0.8);
  RotateY(o,PI/2);
- Translate(o, -1.9, 0.6, 2);
+ Translate(o, -1.9, 2.6, 2);
  invert(&o->T[0][0],&o->Tinv[0][0]);
  loadTexture(o,"./mytex/planets/venmap.ppm");
  insertObject(o,&object_list);
-
-
 
 
  o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
- Scale(o,0.2,0.2,0.2);
+ Scale(o,0.3,0.3,0.3);
  // Scale(o, 0.8, 0.8, 0.8);
  RotateY(o,PI/2);
- Translate(o, -4, 0.6, 2);
+ Translate(o, -3.1, 1.7, 2.4);
  invert(&o->T[0][0],&o->Tinv[0][0]);
  loadTexture(o,"./mytex/planets/venmap.ppm");
  insertObject(o,&object_list);
-
-
 
 
  o=newSphere(.05,.95,.35,.35,1,.25,.25,1,1,6);
@@ -156,7 +152,7 @@ void buildScene(void)
  Scale(o,0.5,0.5,0.5);
  // Scale(o, 0.8, 0.8, 0.8);
  RotateY(o,PI/2);
- Translate(o,-1.7,0.9,3);
+ Translate(o,-1.7,4,3);
  invert(&o->T[0][0],&o->Tinv[0][0]);
  loadTexture(o,"./mytex/planets/Pol1.ppm");
  insertObject(o,&object_list);
@@ -207,7 +203,7 @@ void buildScene(void)
   Scale(o,1.6,1.6,1.6);
  // Scale(o, 0.8, 0.8, 0.8);
  RotateZ(o,PI/1.5);
- Translate(o,-0.6,2,8.0);
+ Translate(o,-.6,1,5.0);
  invert(&o->T[0][0],&o->Tinv[0][0]);
  loadTexture(o,"./mytex/planets/Eve1.ppm");
 
@@ -270,9 +266,25 @@ void buildScene(void)
  // insertPLS(l,&light_list);
 
   addAreaLight(5, 3, 0, -1, 1,
-             5, 25.5,-3.5, 5,7,
+             5, 25.5,12, 2,5,
+             .1, .1, .1,
+             &object_list, &light_list);
+
+  addAreaLight(5, 3, 0, -1, 1,
+             5, 25.5,9, 2,2,
              .05, .05, .05,
              &object_list, &light_list);
+
+  addAreaLight(5, 3, 0, -1, 1,
+             -1, 25.5,12, 3,1,
+             .05, .05, .05,
+             &object_list, &light_list);
+
+  addAreaLight(5, 3, 0, -1, 1,
+             -1, 25.5,9, 3,1,
+             .05, .05, .05,
+             &object_list, &light_list);
+
 
  // End of simple scene for Assignment 3
  // Keep in mind that you can define new types of objects such as cylinders and parametric surfaces,
